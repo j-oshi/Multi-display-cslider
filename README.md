@@ -1,2 +1,2 @@
-# Multi-display-cslider
+# Multi-display-slider
 Slider to display multiple content per slide.
