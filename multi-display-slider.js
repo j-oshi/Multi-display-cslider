@@ -15,7 +15,7 @@ export class MultiDisplaySlider extends HTMLElement {
       }
     `;
 
-    this.slidesPerDisplay = this.getAttribute('slides-per-display');
+    this.slidesPerDisplay = this.getAttribute('slides-per-display') || 1;
     this.scrollSliderBy = this.getAttribute('scroll-slider-distance') || 'display';
   }
 

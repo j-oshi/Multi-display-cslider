@@ -1,2 +1,2 @@
 # Multi-display-slider
-Slider to display multiple content per slide.
+Slider to display multiple slides per display.
