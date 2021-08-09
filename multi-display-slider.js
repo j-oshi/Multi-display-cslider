@@ -19,6 +19,7 @@ export class MultiDisplaySlider extends HTMLElement {
     `;
 
     this.slidesPerDisplay = this.getAttribute('slides-per-display') || 1;
+    this.slidesPerDisplayStep = this.getAttribute('slides-per-display-step') || 1;
     this.slidesPerDisplayBreakpoint = this.getAttribute('slides-per-display-breakpoints') || 1;
     this.scrollSliderBy = this.getAttribute('scroll-slider-distance') || 'display';
   }
@@ -26,6 +27,9 @@ export class MultiDisplaySlider extends HTMLElement {
   connectedCallback() {
     this.render();
     this.init();
+    window.addEventListener("resize", function() {
+      console.log('this is test');
+    });
   }
 
   render() {
@@ -63,45 +67,60 @@ export class MultiDisplaySlider extends HTMLElement {
             background: transparent;
         }
 
-        .arrow {
-          display: inline-block;
-          font-size: 16px; /* adjust size */
-          line-height: 1em; /* adjust vertical positioning */
-          border: 3px solid #000000;
-          border-left: transparent;
-          border-bottom: transparent;
-          width: 1em; /* use font-size to change overall size */
-          height: 1em; /* use font-size to change overall size */
+        .next {
+          float: right;
         }
-      
-        .arrow:before {
-          content: \"00a0\"; /* needed to hook line-height to "something" */
+        .prev {
+          float: left;
         }
-      
-        .arrow.left {
-          margin-left: 0.5em;
-          -webkit-transform: rotate(225deg);
-          -moz-transform: rotate(225deg);
-          -o-transform: rotate(225deg);
-          -ms-transform: rotate(225deg);
-          transform: rotate(225deg);
+        .next,
+        .prev {
+          position: relative;
+          padding: 5px;
+          background: #000;
+          height: 30px;
+          width: 30px;
+          border-radius: 50%;
+          transition: all 0.2s linear;
         }
         
-        .arrow.right {
-          margin-right: 0.5em;
-          -webkit-transform: rotate(45deg);
-          -moz-transform: rotate(45deg);
-          -o-transform: rotate(45deg);
-          -ms-transform: rotate(45deg);
-          transform: rotate(45deg);
+        .next:hover,
+        .prev:hover {
+          background: #fff;
         }
-    
-        .arrow.left:hover {
-          border: 3px solid red;
+
+        .next:hover::after,
+        .prev:hover::after {
+          border-top: 2px solid #000;
+          border-left: 2px solid #000;
         }
         
-        .arrow.right:hover {
-          border: 3px solid red;
+        .next::after,
+        .prev::after {
+          content: "";
+          position: relative;
+          margin: 5px auto;
+          z-index: 11;
+          display: block;
+          width: 15px;
+          height: 15px;
+          border-top: 2px solid #fff;
+          border-left: 2px solid #fff;
+        }
+
+        .next::after {
+          transform: rotate(135deg);
+        }
+        
+        .prev::after {
+          transform: rotate(-45deg);
+        }
+
+        .control {
+          position: absolute;
+          top: 50%;
+          width:100%;
+          transform: translateY(-50%);
         }
       </style>
 
@@ -109,9 +128,9 @@ export class MultiDisplaySlider extends HTMLElement {
         <div class="slides"> 
           <slot></slot>
         </div>
-        <div class="control" style="position: absolute;top: 50%;">
-          <div id="button-left" class='arrow left'></div>
-          <div id="button-right" class='arrow right'></div>
+        <div class="control">
+          <div id="button-left" class='arrow prev'></div>
+          <div id="button-right" class='arrow next'></div>
         </div>
       </div>`;
     this.shadowRoot.appendChild(template.content);
@@ -139,10 +158,10 @@ export class MultiDisplaySlider extends HTMLElement {
     let root = this;
 
     this.shadowRoot.querySelector('#button-left').onclick = () => {
-      root.scrollSlider(root.scrollSliderBy, slideDisplay, -slidesWidth, -sliderWrapper.scrollWidth)
+      root.scrollSlider(root.scrollSliderBy, slideDisplay, -slidesWidth, -sliderWrapper.scrollWidth, this.slidesPerDisplayStep)
     };
     this.shadowRoot.querySelector('#button-right').onclick = () => {
-      root.scrollSlider(root.scrollSliderBy, slideDisplay, slidesWidth, sliderWrapper.scrollWidth)
+      root.scrollSlider(root.scrollSliderBy, slideDisplay, slidesWidth, sliderWrapper.scrollWidth, this.slidesPerDisplayStep)
     };
   }
 
@@ -155,22 +174,22 @@ export class MultiDisplaySlider extends HTMLElement {
       obj = breakpointArray[i];
       obj_key = JSON.stringify(Object.keys(obj)).replace(/[\])}[{("']/g, '');
       obj_value = Object.values(obj);
-      console.log(width);
+ 
       if (evaluteComparisonExpression(obj_key, width)) {
-        console.log(obj_value[0]);
         return obj_value[0];
       }
     }  
+    return 1;
   }
 
   calculateSlideNewWidth(displayWidth, numberOfSlidesPerDisplay) {
     return displayWidth.scrollWidth / numberOfSlidesPerDisplay;
   }
 
-  scrollSlider(scrollBy, scrollContainer, slideWidth, displayWidth) {
+  scrollSlider(scrollBy, scrollContainer, slideWidth, displayWidth, slideStep) {
     switch (scrollBy) {
       case 'slide':
-        scrollContainer.scrollLeft += slideWidth;
+        scrollContainer.scrollLeft += slideStep * slideWidth;
         break;
       case 'display':
         scrollContainer.scrollLeft += displayWidth;
