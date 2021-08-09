@@ -1,3 +1,7 @@
+import { 
+  evaluteComparisonExpression 
+} from "./comparison-operator-string-evaluator.js";
+
 export class MultiDisplaySlider extends HTMLElement {
   constructor() {
     super();
@@ -5,7 +9,6 @@ export class MultiDisplaySlider extends HTMLElement {
     const style = document.createElement('style');
     const shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.appendChild(style);
-
     style.textContent = `
       :host { 
         position: relative;
@@ -16,6 +19,7 @@ export class MultiDisplaySlider extends HTMLElement {
     `;
 
     this.slidesPerDisplay = this.getAttribute('slides-per-display') || 1;
+    this.slidesPerDisplayBreakpoint = this.getAttribute('slides-per-display-breakpoints') || 1;
     this.scrollSliderBy = this.getAttribute('scroll-slider-distance') || 'display';
   }
 
@@ -27,99 +31,100 @@ export class MultiDisplaySlider extends HTMLElement {
   render() {
     const template = document.createElement("template");
     template.innerHTML = `
-    <style>
-      .slider {
-        overflow: hidden;
-      }
-  
-      .slides {
-        display: flex;
-        overflow-x: hidden;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-          
-        /*
-          scroll-snap-points-x: repeat(300px);
-          scroll-snap-type: mandatory;
-        */
-      }
+      <style>
+        .slider {
+          overflow: hidden;
+        }
     
-      .slides::-webkit-scrollbar {
-          width: 10px;
-          height: 10px;
-      }
+        .slides {
+          display: flex;
+          overflow-x: hidden;
+          scroll-snap-type: x mandatory;
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+            
+          /*
+            scroll-snap-points-x: repeat(300px);
+            scroll-snap-type: mandatory;
+          */
+        }
       
-      .slides::-webkit-scrollbar-thumb {
-          background: black;
-          border-radius: 10px;
-      }
-  
-      .slides::-webkit-scrollbar-track {
-          background: transparent;
-      }
+        .slides::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        .slides::-webkit-scrollbar-thumb {
+            background: black;
+            border-radius: 10px;
+        }
+    
+        .slides::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-      .arrow {
-        display: inline-block;
-        font-size: 16px; /* adjust size */
-        line-height: 1em; /* adjust vertical positioning */
-        border: 3px solid #000000;
-        border-left: transparent;
-        border-bottom: transparent;
-        width: 1em; /* use font-size to change overall size */
-        height: 1em; /* use font-size to change overall size */
-      }
-    
-      .arrow:before {
-        content: \"00a0\"; /* needed to hook line-height to "something" */
-      }
-    
-      .arrow.left {
-        margin-left: 0.5em;
-        -webkit-transform: rotate(225deg);
-        -moz-transform: rotate(225deg);
-        -o-transform: rotate(225deg);
-        -ms-transform: rotate(225deg);
-        transform: rotate(225deg);
-      }
+        .arrow {
+          display: inline-block;
+          font-size: 16px; /* adjust size */
+          line-height: 1em; /* adjust vertical positioning */
+          border: 3px solid #000000;
+          border-left: transparent;
+          border-bottom: transparent;
+          width: 1em; /* use font-size to change overall size */
+          height: 1em; /* use font-size to change overall size */
+        }
       
-      .arrow.right {
-        margin-right: 0.5em;
-        -webkit-transform: rotate(45deg);
-        -moz-transform: rotate(45deg);
-        -o-transform: rotate(45deg);
-        -ms-transform: rotate(45deg);
-        transform: rotate(45deg);
-      }
-  
-      .arrow.left:hover {
-        border: 3px solid red;
-      }
+        .arrow:before {
+          content: \"00a0\"; /* needed to hook line-height to "something" */
+        }
       
-      .arrow.right:hover {
-        border: 3px solid red;
-      }
-    </style>
+        .arrow.left {
+          margin-left: 0.5em;
+          -webkit-transform: rotate(225deg);
+          -moz-transform: rotate(225deg);
+          -o-transform: rotate(225deg);
+          -ms-transform: rotate(225deg);
+          transform: rotate(225deg);
+        }
+        
+        .arrow.right {
+          margin-right: 0.5em;
+          -webkit-transform: rotate(45deg);
+          -moz-transform: rotate(45deg);
+          -o-transform: rotate(45deg);
+          -ms-transform: rotate(45deg);
+          transform: rotate(45deg);
+        }
+    
+        .arrow.left:hover {
+          border: 3px solid red;
+        }
+        
+        .arrow.right:hover {
+          border: 3px solid red;
+        }
+      </style>
 
-    <div class="slider">
-      <div class="slides"> 
-        <slot></slot>
-      </div>
-      <div class="control" style="position: absolute;top: 50%;">
-        <div id="button-left" class='arrow left'></div>
-        <div id="button-right" class='arrow right'></div>
-      </div>
-    </div>`;
+      <div class="slider">
+        <div class="slides"> 
+          <slot></slot>
+        </div>
+        <div class="control" style="position: absolute;top: 50%;">
+          <div id="button-left" class='arrow left'></div>
+          <div id="button-right" class='arrow right'></div>
+        </div>
+      </div>`;
     this.shadowRoot.appendChild(template.content);
   }
 
   init() {
-    let sliderWrapper = null, slideDisplay = null, leftControl = null, rightControl = null;
+    let sliderWrapper = null, slideDisplay = null, leftControl = null, rightControl = null, slidesToShow;
     sliderWrapper = this.shadowRoot.querySelector('.slider');
     slideDisplay = this.shadowRoot.querySelector('.slides');
 
     let slot = null, nodes = null, slidesWidth = null;
-    slidesWidth = this.calculateSlideNewWidth(sliderWrapper, this.slidesPerDisplay);
+    slidesToShow = Boolean(this.slidesPerDisplayBreakpoint) ? this.displayBreakpointSlides(sliderWrapper.scrollWidth) : this.slidesPerDisplay;
+    slidesWidth = this.calculateSlideNewWidth(sliderWrapper, slidesToShow);
 
     slot = this.shadowRoot.querySelector('slot');
     nodes = slot.assignedElements();
@@ -139,6 +144,23 @@ export class MultiDisplaySlider extends HTMLElement {
     this.shadowRoot.querySelector('#button-right').onclick = () => {
       root.scrollSlider(root.scrollSliderBy, slideDisplay, slidesWidth, sliderWrapper.scrollWidth)
     };
+  }
+
+  displayBreakpointSlides(width) {
+    let breakpoint = null, breakpointArray = null;
+    breakpoint = this.slidesPerDisplayBreakpoint;
+    breakpointArray = JSON.parse(breakpoint);
+    for (let i in breakpointArray) {
+      let obj = null, obj_key = null, obj_value = null;
+      obj = breakpointArray[i];
+      obj_key = JSON.stringify(Object.keys(obj)).replace(/[\])}[{("']/g, '');
+      obj_value = Object.values(obj);
+      console.log(width);
+      if (evaluteComparisonExpression(obj_key, width)) {
+        console.log(obj_value[0]);
+        return obj_value[0];
+      }
+    }  
   }
 
   calculateSlideNewWidth(displayWidth, numberOfSlidesPerDisplay) {
