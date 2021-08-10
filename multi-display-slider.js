@@ -27,20 +27,18 @@ export class MultiDisplaySlider extends HTMLElement {
   connectedCallback() {
     this.render();
     this.init();
-    window.addEventListener("resize", function() {
-      console.log('this is test');
-    });
+    this.resize();
   }
 
   render() {
     const template = document.createElement("template");
     template.innerHTML = `
       <style>
-        .slider {
+        .slide-display {
           overflow: hidden;
         }
     
-        .slides {
+        .slide-wrapper {
           display: flex;
           overflow-x: hidden;
           scroll-snap-type: x mandatory;
@@ -53,17 +51,17 @@ export class MultiDisplaySlider extends HTMLElement {
           */
         }
       
-        .slides::-webkit-scrollbar {
+        .slide-wrapper::-webkit-scrollbar {
             width: 10px;
             height: 10px;
         }
         
-        .slides::-webkit-scrollbar-thumb {
+        .slide-wrapper::-webkit-scrollbar-thumb {
             background: black;
             border-radius: 10px;
         }
     
-        .slides::-webkit-scrollbar-track {
+        .slide-wrapper::-webkit-scrollbar-track {
             background: transparent;
         }
 
@@ -124,8 +122,8 @@ export class MultiDisplaySlider extends HTMLElement {
         }
       </style>
 
-      <div class="slider">
-        <div class="slides"> 
+      <div class="slide-display">
+        <div class="slide-wrapper"> 
           <slot></slot>
         </div>
         <div class="control">
@@ -137,49 +135,65 @@ export class MultiDisplaySlider extends HTMLElement {
   }
 
   init() {
-    let sliderWrapper = null, slideDisplay = null, leftControl = null, rightControl = null, slidesToShow;
-    sliderWrapper = this.shadowRoot.querySelector('.slider');
-    slideDisplay = this.shadowRoot.querySelector('.slides');
+    this.scrollSlide();
+  }
 
-    let slot = null, nodes = null, slidesWidth = null;
-    slidesToShow = Boolean(this.slidesPerDisplayBreakpoint) ? this.displayBreakpointSlides(sliderWrapper.scrollWidth) : this.slidesPerDisplay;
-    slidesWidth = this.calculateSlideNewWidth(sliderWrapper, slidesToShow);
+  resize() {
+    let root = this;
+    window.addEventListener("resize", function() {
+      root.debounce(root.init(), 1200);
+    });    
+  }
+
+  scrollSlide() {
+    let sliderWrapper = null, sliderDisplay = null, slidesToShow = null, slot = null, nodes = null, slidesWidth = null, root = null;
+    sliderDisplay = this.shadowRoot.querySelector('.slide-display');
+    sliderWrapper = this.shadowRoot.querySelector('.slide-wrapper');
+    slidesToShow = Boolean(this.slidesPerDisplayBreakpoint) ? this.displayBreakpointSlides(sliderDisplay.scrollWidth, this.slidesPerDisplayBreakpoint) : this.slidesPerDisplay;   
+    slidesWidth = this.calculateSlideNewWidth(sliderDisplay, slidesToShow);
 
     slot = this.shadowRoot.querySelector('slot');
     nodes = slot.assignedElements();
 
     if (nodes.length > 0) {
       nodes.forEach(node => {
-        console.log(node);
         node.setAttribute("style", `width: ${slidesWidth}px`);
       })
     }
 
-    let root = this;
+    root = this;
 
     this.shadowRoot.querySelector('#button-left').onclick = () => {
-      root.scrollSlider(root.scrollSliderBy, slideDisplay, -slidesWidth, -sliderWrapper.scrollWidth, this.slidesPerDisplayStep)
-    };
+      root.scrollSlider(root.scrollSliderBy, sliderWrapper, -slidesWidth, -sliderDisplay.scrollWidth, this.slidesPerDisplayStep);
+    }
     this.shadowRoot.querySelector('#button-right').onclick = () => {
-      root.scrollSlider(root.scrollSliderBy, slideDisplay, slidesWidth, sliderWrapper.scrollWidth, this.slidesPerDisplayStep)
-    };
+      root.scrollSlider(root.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, this.slidesPerDisplayStep);
+    }
   }
 
-  displayBreakpointSlides(width) {
-    let breakpoint = null, breakpointArray = null;
-    breakpoint = this.slidesPerDisplayBreakpoint;
+  displayBreakpointSlides(slidewidth, breakpoint) {
+    let breakpointArray = null;
     breakpointArray = JSON.parse(breakpoint);
-    for (let i in breakpointArray) {
-      let obj = null, obj_key = null, obj_value = null;
-      obj = breakpointArray[i];
-      obj_key = JSON.stringify(Object.keys(obj)).replace(/[\])}[{("']/g, '');
-      obj_value = Object.values(obj);
+
+    for (let bp in breakpointArray) {
+      let bp_obj = null, bp_key = null, bp_value = null;
+      bp_obj = breakpointArray[bp];
+      bp_key = JSON.stringify(Object.keys(bp_obj)).replace(/[\])}[{("']/g, '');
+      bp_value = Object.values(bp_obj);
  
-      if (evaluteComparisonExpression(obj_key, width)) {
-        return obj_value[0];
+      if (evaluteComparisonExpression(bp_key, slidewidth)) {
+        return bp_value[0];
       }
     }  
     return 1;
+  }
+
+  debounce(callback, delay) {
+    let timeout;
+    return function () {
+      clearTimeout(timeout);
+      timeout = setTimeout(callback, delay);
+    }
   }
 
   calculateSlideNewWidth(displayWidth, numberOfSlidesPerDisplay) {
