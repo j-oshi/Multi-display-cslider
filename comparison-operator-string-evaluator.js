@@ -60,7 +60,7 @@ const executeOperation = str => {
 
 let standardizeVariable = (str, variable) => {
     let result = null;
-    result = str.replace(/[^0-9/\b<=\b/\b=>\b/ ]+/g, variable);
+    result = str.replace(/[^0-9/\b<=\b/\b=>\b/ ]+/g, variable).replace(/\s\s+/g, ' ');
     return result;
 }
 
@@ -90,7 +90,7 @@ let evaluteComparisonExpression = (str, value) => {
     standardizedString = standardizeVariable(str, 'a');
     standardizedStringProcessed = substituteVariableValue(standardizedString, 'a', value);
     comparisonExpressionType = comparisonType(standardizedStringProcessed);
-
+    console.log(comparisonExpressionType.length);
     if (comparisonExpressionType.length === 5) {
         let leftSideOperand = null, rightSideOperand = null, content = [];
         content = comparisonExpressionType.content;
