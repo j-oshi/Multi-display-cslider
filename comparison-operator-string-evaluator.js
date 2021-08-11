@@ -90,7 +90,7 @@ let evaluteComparisonExpression = (str, value) => {
     standardizedString = standardizeVariable(str, 'a');
     standardizedStringProcessed = substituteVariableValue(standardizedString, 'a', value);
     comparisonExpressionType = comparisonType(standardizedStringProcessed);
-    console.log(comparisonExpressionType.length);
+
     if (comparisonExpressionType.length === 5) {
         let leftSideOperand = null, rightSideOperand = null, content = [];
         content = comparisonExpressionType.content;

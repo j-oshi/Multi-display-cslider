@@ -146,11 +146,16 @@ export class MultiDisplaySlider extends HTMLElement {
   }
 
   scrollSlide() {
-    let sliderWrapper = null, sliderDisplay = null, slidesToShow = null, slot = null, nodes = null, slidesWidth = null, root = null;
+    let sliderWrapper = null, sliderDisplay = null, sliderControl = null, slidesToShow = null, slot = null, nodes = null, slidesWidth = null, breakpoint = null, numPerScroll = null;
     sliderDisplay = this.shadowRoot.querySelector('.slide-display');
     sliderWrapper = this.shadowRoot.querySelector('.slide-wrapper');
-    slidesToShow = Boolean(this.slidesPerDisplayBreakpoint) ? this.displayBreakpointSlides(sliderDisplay.scrollWidth, this.slidesPerDisplayBreakpoint) : this.slidesPerDisplay;   
+    sliderControl = this.shadowRoot.querySelector('.control');
+    breakpoint = this.displayBreakpointSlides(sliderDisplay.scrollWidth, this.slidesPerDisplayBreakpoint);
+    slidesToShow = Boolean(this.slidesPerDisplayBreakpoint) ? breakpoint : this.slidesPerDisplay; 
+    numPerScroll = (breakpoint < this.slidesPerDisplayStep) ? breakpoint : this.slidesPerDisplayStep;
     slidesWidth = this.calculateSlideNewWidth(sliderDisplay, slidesToShow);
+
+    this.hideControlOnMinMax(sliderWrapper, sliderControl)
 
     slot = this.shadowRoot.querySelector('slot');
     nodes = slot.assignedElements();
@@ -161,26 +166,9 @@ export class MultiDisplaySlider extends HTMLElement {
       })
     }
 
-    root = this;
-
-    this.shadowRoot.querySelector('#button-left').onclick = () => {
-      root.scrollSlider(root.scrollSliderBy, sliderWrapper, -slidesWidth, -sliderDisplay.scrollWidth, this.slidesPerDisplayStep);
-    }
-    this.shadowRoot.querySelector('#button-right').onclick = () => {
-      root.scrollSlider(root.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, this.slidesPerDisplayStep);
-    }
-    
-    document.addEventListener('keydown', (event) => {
-      let keyName = event.key;
-        switch (keyName) {
-          case 'ArrowLeft':
-          plusSlides(-1);
-                break;
-              case 'ArrowRight':    
-                plusSlides(1);
-                break;
-            }
-          });  
+    this.leftClick(this.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, numPerScroll, sliderControl);
+    this.rightClick(this.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, numPerScroll, sliderControl);
+    this.scrollByKeyboard(this.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, numPerScroll, sliderControl);
   }
 
   displayBreakpointSlides(slidewidth, breakpoint) {
@@ -212,7 +200,7 @@ export class MultiDisplaySlider extends HTMLElement {
     return displayWidth.scrollWidth / numberOfSlidesPerDisplay;
   }
 
-  scrollSlider(scrollBy, scrollContainer, slideWidth, displayWidth, slideStep) {
+  scrollSlider(scrollBy, scrollContainer, slideWidth, displayWidth, slideStep, sliderControl) {
     switch (scrollBy) {
       case 'slide':
         scrollContainer.scrollLeft += slideStep * slideWidth;
@@ -220,6 +208,56 @@ export class MultiDisplaySlider extends HTMLElement {
       case 'display':
         scrollContainer.scrollLeft += displayWidth;
         break;
+    }
+    let root = null
+    root = this;
+    scrollContainer.addEventListener('scroll', function() {
+      root.hideControlOnMinMax(scrollContainer, sliderControl);
+    });
+  }
+
+  leftClick(scrollType, sliderWrapper, slidesWidth, displayWidth, scrollStep, sliderControl) {
+    this.shadowRoot.querySelector('#button-left').onclick = () => {
+      this.scrollSlider(scrollType, sliderWrapper, -slidesWidth, -displayWidth, scrollStep, sliderControl);
+    }
+  }
+
+  rightClick(scrollType, sliderWrapper, slidesWidth, displayWidth, scrollStep, sliderControl) {
+    this.shadowRoot.querySelector('#button-right').onclick = () => {
+      this.scrollSlider(scrollType, sliderWrapper, slidesWidth, displayWidth, scrollStep, sliderControl);
+    }
+  }
+
+  scrollByKeyboard(scrollType, sliderWrapper, slidesWidth, displayWidth, scrollStep, sliderControl) {
+    document.addEventListener('keydown', (event) => {
+      let keyName = null;
+      keyName = event.key;
+      switch (keyName) {
+        case 'ArrowLeft':
+          this.scrollSlider(scrollType, sliderWrapper, -slidesWidth, -displayWidth, scrollStep, sliderControl);
+          break;
+        case 'ArrowRight':    
+          this.scrollSlider(scrollType, sliderWrapper, slidesWidth, displayWidth, scrollStep, sliderControl);
+          break;
+      }
+    });  
+  }
+
+  hideControlOnMinMax(scrollObj, sliderControl) {
+    let left = null, right = null;
+    left = sliderControl.querySelector('#button-left');
+    right = sliderControl.querySelector('#button-right');
+
+    if (scrollObj.scrollLeft == 0) {
+      left.setAttribute('style', 'display:none;');
+    } else {
+      left.removeAttribute('style', 'display:none;');
+    }
+
+    if ((scrollObj.scrollLeft + scrollObj.offsetWidth) >= scrollObj.scrollWidth) {
+      right.setAttribute('style', 'display:none;');
+    } else {
+      right.removeAttribute('style', 'display:none;');
     }
   }
 }
