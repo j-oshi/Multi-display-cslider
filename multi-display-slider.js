@@ -169,6 +169,18 @@ export class MultiDisplaySlider extends HTMLElement {
     this.shadowRoot.querySelector('#button-right').onclick = () => {
       root.scrollSlider(root.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, this.slidesPerDisplayStep);
     }
+    
+    document.addEventListener('keydown', (event) => {
+      let keyName = event.key;
+        switch (keyName) {
+          case 'ArrowLeft':
+          plusSlides(-1);
+                break;
+              case 'ArrowRight':    
+                plusSlides(1);
+                break;
+            }
+          });  
   }
 
   displayBreakpointSlides(slidewidth, breakpoint) {
