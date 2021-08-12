@@ -2,7 +2,7 @@
 Slider to display multiple slides per display.
 
 ## How to use
-Add file as a module script to html file.
+Add file as a module script to html file. <br >
 Use the `<multi-display-slide></multi-display-slide>` tag to add the slider to page. <br >
 Position slide elements  between `<multi-display-slide></multi-display-slide>` tag. <br ><br >
 
