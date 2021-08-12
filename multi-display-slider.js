@@ -119,6 +119,7 @@ export class MultiDisplaySlider extends HTMLElement {
           top: 50%;
           width:100%;
           transform: translateY(-50%);
+          z-index: 999;
         }
       </style>
 
@@ -162,7 +163,7 @@ export class MultiDisplaySlider extends HTMLElement {
 
     if (nodes.length > 0) {
       nodes.forEach(node => {
-        node.setAttribute("style", `width: ${slidesWidth}px`);
+        node.setAttribute("style", `width: ${slidesWidth}px; scroll-snap-align: start; flex-shrink: 0;`);
       })
     }
 

@@ -51,3 +51,49 @@
 .slide-item:nth-child(odd) {background: blue}
 
 
+/* .card {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    width: 300px;
+    height: 300px;
+    border-radius: 3px;
+    background: #eee;
+    transform-origin: center center;
+    transform: scale(1);
+    transition: transform 0.5s;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 100px;
+} */
+
+.card {
+    position: relative;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+    transition: 0.3s;
+    width: 100%;
+    border-radius: 5px;
+    box-sizing: border-box;
+    padding: 2px;
+    margin: 30px 0;
+    transition: all .2s ease-in-out;
+    background: #fff;
+}
+
+.card:hover { 
+    transform: scale(1.05); 
+    z-index: 20;
+}
+
+.card .container {
+    padding: 10px;
+}
+
+.card h6 {
+    font-size: 16px;
+}
+
+.card p {
+    font-size: 12px;
+}
