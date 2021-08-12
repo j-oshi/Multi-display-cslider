@@ -17,3 +17,10 @@ Check index.html for markup example. It will need a live server to run. <br ><br
 | scroll-slider-distance          | {string}          | display    | (display or slide) | Allow scrolling step by number of slide width or display width |
 
  <br ><br ><br >
+
+  `<multi-display-slider 
+        slides-per-display=2 
+        slides-per-display-step=1
+        slides-per-display-breakpoints='[{"(width >= 1200)":"5"},{"(992 <= width <= 1199)":"4"},{"(768 <= width <= 991)":"3"},{"(576 <= width <= 767)":"2"},{"(width <= 575)":"1"}]'
+        scroll-slider-distance="display"   
+  ></multi-display-slider>`
