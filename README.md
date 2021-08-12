@@ -18,9 +18,11 @@ Check index.html for markup example. It will need a live server to run. <br ><br
 
  <br ><br ><br >
 
-  `<multi-display-slider` <br >
-        slides-per-display=2 <br >
-        slides-per-display-step=1 <br >
-        slides-per-display-breakpoints='[{"(width >= 1200)":"5"},{"(992 <= width <= 1199)":"4"},{"(768 <= width <= 991)":"3"},{"(576 <= width <= 767)":"2"},{"(width <= 575)":"1"}]'<br >
-        scroll-slider-distance="display"<br >   
-  `></multi-display-slider>` <br ><br ><br >
+<pre>
+  <multi-display-slider` 
+        slides-per-display=2 
+        slides-per-display-step=1 
+        slides-per-display-breakpoints='[{"(width >= 1200)":"5"},{"(992 <= width <= 1199)":"4"},{"(768 <= width <= 991)":"3"},{"(576 <= width <= 767)":"2"},{"(width <= 575)":"1"}]'
+        scroll-slider-distance="display" 
+  `></multi-display-slider>`
+</pre> <br ><br ><br >
