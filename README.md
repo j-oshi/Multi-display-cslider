@@ -19,10 +19,10 @@ Check index.html for markup example. It will need a live server to run. <br ><br
  <br ><br ><br >
 
 <pre>
-  <code><multi-display-slider
+  <code>&lt;multi-display-slider
         slides-per-display=2 
         slides-per-display-step=1 
         slides-per-display-breakpoints='[{"(width >= 1200)":"5"},{"(992 <= width <= 1199)":"4"},{"(768 <= width <= 991)":"3"},{"(576 <= width <= 767)":"2"},{"(width <= 575)":"1"}]'
         scroll-slider-distance="display" 
-  ></multi-display-slider></code>
+  &gt; &lt;/multi-display-slider&gt;</code>
 </pre> <br ><br ><br >
