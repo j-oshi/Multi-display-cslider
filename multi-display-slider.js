@@ -5,9 +5,28 @@ import {
 export class MultiDisplaySlider extends HTMLElement {
   constructor() {
     super();
+    this.state = {
+      slidesPerDisplay: this.getAttribute('slides-per-display') || 1,
+      slidesPerDisplayStep: this.getAttribute('slides-per-display-step') || 1,
+      slidesPerDisplayBreakpoint: this.getAttribute('slides-per-display-breakpoints') || 1,
+      scrollSliderBy: this.getAttribute('scroll-slider-distance') || 'display'      
+    }
+    this.addStyleToHost();
+    this.render();
+    this.init = this.init.bind(this);
+    this.debounce = this.debounce.bind(this);
+    this.hideControlOnMinMax = this.hideControlOnMinMax.bind(this);
+  }
 
-    const style = document.createElement('style');
-    const shadowRoot = this.attachShadow({mode: 'open'});
+  connectedCallback() {
+    this.init();
+    this.resize();
+  }
+
+  addStyleToHost() {
+    let style = null, shadowRoot = null;
+    style = document.createElement('style');
+    shadowRoot = this.attachShadow({mode: 'open'});
     shadowRoot.appendChild(style);
     style.textContent = `
       :host { 
@@ -15,19 +34,7 @@ export class MultiDisplaySlider extends HTMLElement {
         display: block;
         width: 100%;
         overflow: hidden; 
-      }
-    `;
-
-    this.slidesPerDisplay = this.getAttribute('slides-per-display') || 1;
-    this.slidesPerDisplayStep = this.getAttribute('slides-per-display-step') || 1;
-    this.slidesPerDisplayBreakpoint = this.getAttribute('slides-per-display-breakpoints') || 1;
-    this.scrollSliderBy = this.getAttribute('scroll-slider-distance') || 'display';
-  }
-
-  connectedCallback() {
-    this.render();
-    this.init();
-    this.resize();
+      }`;
   }
 
   render() {
@@ -140,9 +147,8 @@ export class MultiDisplaySlider extends HTMLElement {
   }
 
   resize() {
-    let root = this;
-    window.addEventListener("resize", function() {
-      root.debounce(root.init(), 1200);
+    window.addEventListener("resize", () => {
+      this.debounce(this.init(), 1200);
     });    
   }
 
@@ -151,9 +157,9 @@ export class MultiDisplaySlider extends HTMLElement {
     sliderDisplay = this.shadowRoot.querySelector('.slide-display');
     sliderWrapper = this.shadowRoot.querySelector('.slide-wrapper');
     sliderControl = this.shadowRoot.querySelector('.control');
-    breakpoint = this.displayBreakpointSlides(sliderDisplay.scrollWidth, this.slidesPerDisplayBreakpoint);
-    slidesToShow = Boolean(this.slidesPerDisplayBreakpoint) ? breakpoint : this.slidesPerDisplay; 
-    numPerScroll = (breakpoint < this.slidesPerDisplayStep) ? breakpoint : this.slidesPerDisplayStep;
+    breakpoint = this.displayBreakpointSlides(sliderDisplay.scrollWidth, this.state.slidesPerDisplayBreakpoint);
+    slidesToShow = Boolean(this.state.slidesPerDisplayBreakpoint) ? breakpoint : this.state.slidesPerDisplay; 
+    numPerScroll = (breakpoint < this.state.slidesPerDisplayStep) ? breakpoint : this.state.slidesPerDisplayStep;
     slidesWidth = this.calculateSlideNewWidth(sliderDisplay, slidesToShow);
 
     this.hideControlOnMinMax(sliderWrapper, sliderControl)
@@ -167,9 +173,9 @@ export class MultiDisplaySlider extends HTMLElement {
       })
     }
 
-    this.leftClick(this.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, numPerScroll, sliderControl);
-    this.rightClick(this.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, numPerScroll, sliderControl);
-    this.scrollByKeyboard(this.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, numPerScroll, sliderControl);
+    this.leftClick(this.state.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, numPerScroll, sliderControl);
+    this.rightClick(this.state.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, numPerScroll, sliderControl);
+    this.scrollByKeyboard(this.state.scrollSliderBy, sliderWrapper, slidesWidth, sliderDisplay.scrollWidth, numPerScroll, sliderControl);
   }
 
   displayBreakpointSlides(slidewidth, breakpoint) {
@@ -190,8 +196,8 @@ export class MultiDisplaySlider extends HTMLElement {
   }
 
   debounce(callback, delay) {
-    let timeout;
-    return function () {
+    let timeout = null;
+    return () => {
       clearTimeout(timeout);
       timeout = setTimeout(callback, delay);
     }
@@ -210,10 +216,9 @@ export class MultiDisplaySlider extends HTMLElement {
         scrollContainer.scrollLeft += displayWidth;
         break;
     }
-    let root = null
-    root = this;
-    scrollContainer.addEventListener('scroll', function() {
-      root.hideControlOnMinMax(scrollContainer, sliderControl);
+
+    scrollContainer.addEventListener('scroll', () => {
+      this.hideControlOnMinMax(scrollContainer, sliderControl);
     });
   }
 
@@ -231,9 +236,7 @@ export class MultiDisplaySlider extends HTMLElement {
 
   scrollByKeyboard(scrollType, sliderWrapper, slidesWidth, displayWidth, scrollStep, sliderControl) {
     document.addEventListener('keydown', (event) => {
-      let keyName = null;
-      keyName = event.key;
-      switch (keyName) {
+      switch (event.key) {
         case 'ArrowLeft':
           this.scrollSlider(scrollType, sliderWrapper, -slidesWidth, -displayWidth, scrollStep, sliderControl);
           break;
